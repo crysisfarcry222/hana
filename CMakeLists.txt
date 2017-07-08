@@ -5,6 +5,22 @@
 cmake_minimum_required(VERSION 3.8)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+##############################################################################
+# Setup CMake options
+##############################################################################
+option(BOOST_HANA_ENABLE_CONCEPT_CHECKS "Enable concept checking in the interface methods." ON)
+option(BOOST_HANA_ENABLE_DEBUG_MODE "Enable Hana's debug mode." OFF)
+option(BOOST_HANA_ENABLE_CPP17 "Build with C++17 instead of usual required C++ standard. Useful for testing." OFF)
+
+option(BOOST_HANA_ENABLE_STRING_UDL
+"Enable the GNU extension allowing the special string literal operator\
+ template, which enables the _s suffix for creating compile-time strings." ON)
+
+option(BOOST_HANA_ENABLE_EXCEPTIONS
+"Build with exceptions enabled. Note that Hana does not make use of exceptions,\
+ but this switch can be disabled when building the tests to assess that it is\
+ really the case." ON)
+
 
 ##############################################################################
 # Setup project
@@ -38,7 +54,11 @@ target_include_directories(hana INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOU
 # complains about the unknown option. TODO: Remove this workaround once the
 # underlying bug is fixed in CMake: https://gitlab.kitware.com/cmake/cmake/issues/17015
 if (NOT (MSVC AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
-    target_compile_features(hana INTERFACE cxx_std_14)
+    if (BOOST_HANA_ENABLE_CPP17)
+        target_compile_features(hana INTERFACE cxx_std_17)
+    else()
+        target_compile_features(hana INTERFACE cxx_std_14)
+    endif()
 endif()
 
 # Export the `hana` library into a HanaConfig.cmake file
@@ -49,22 +69,6 @@ install(DIRECTORY include/boost DESTINATION include FILES_MATCHING PATTERN "*.hp
 # Also install an optional pkg-config file
 configure_file(cmake/hana.pc.in hana.pc @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/hana.pc" DESTINATION lib/pkgconfig)
-
-
-##############################################################################
-# Setup CMake options
-##############################################################################
-option(BOOST_HANA_ENABLE_CONCEPT_CHECKS "Enable concept checking in the interface methods." ON)
-option(BOOST_HANA_ENABLE_DEBUG_MODE "Enable Hana's debug mode." OFF)
-
-option(BOOST_HANA_ENABLE_STRING_UDL
-"Enable the GNU extension allowing the special string literal operator\
- template, which enables the _s suffix for creating compile-time strings." ON)
-
-option(BOOST_HANA_ENABLE_EXCEPTIONS
-"Build with exceptions enabled. Note that Hana does not make use of exceptions,\
- but this switch can be disabled when building the tests to assess that it is\
- really the case." ON)
 
 
 ##############################################################################
