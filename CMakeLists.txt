@@ -47,6 +47,7 @@ include(CheckCxxCompilerSupport)
 # Setup the 'hana' header-only library target, along with its install target
 # and exports.
 ##############################################################################
+include(CheckCXXCompilerFlag)
 add_library(hana INTERFACE)
 target_include_directories(hana INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                           $<INSTALL_INTERFACE:include>)
@@ -56,6 +57,10 @@ target_include_directories(hana INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOU
 if (NOT (MSVC AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
     if (BOOST_HANA_ENABLE_CPP17)
         target_compile_features(hana INTERFACE cxx_std_17)
+        check_cxx_compiler_flag(BOOST_HANA_HAS_WUNNEEDED_INTERNAL_DECLARATIONS -Wunneeded-internal-declaration)
+        if (BOOST_HANA_HAS_WUNNEEDED_INTERNAL_DECLARATIONS)
+            target_compile_options(hana INTERFACE -Wunneeded-internal-declaration)
+        endif()
     else()
         target_compile_features(hana INTERFACE cxx_std_14)
     endif()
@@ -74,7 +79,6 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/hana.pc" DESTINATION lib/pkgconfig)
 ##############################################################################
 # Function to setup common compiler flags on tests and examples
 ##############################################################################
-include(CheckCXXCompilerFlag)
 function(boost_hana_set_test_properties target)
     target_link_libraries(${target} PRIVATE hana)
     set_target_properties(${target} PROPERTIES CXX_EXTENSIONS NO)
